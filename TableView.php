@@ -29,6 +29,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+/**
+ * The TableView class allows you to simply print PHP arrays as HTML tables.
+ * This class is especially usefull if you have arrays of arrays (for instance
+ * as a result of a fetchAll call on a database), as they can easily be formatted
+ * as tables.
+ *
+ * See TableViewTest.php for usage examples.
+ */
 class TableView {
     // The orientation of the table
     const HORIZONTAL = 0;
@@ -117,6 +125,7 @@ class TableView {
 
     private $rows = 0;
     private $columns = 0;
+    private $isRowData = false;
     private $labels = array();
 
     /**
@@ -144,6 +153,7 @@ class TableView {
             // necessary statistics for writing table.
             foreach ($this->data as $label => $cols) {
                 $s = is_array($cols) ? sizeof($cols) : 1;
+                $this->isRowData = !is_array($cols);
                 $this->labels[] = $label;
                 if ($this->orientation === self::VERTICAL) {
                     if ($this->columns > 0 && $s !== $this->columns) {
@@ -255,48 +265,80 @@ class TableView {
 
                 // Print the data
                 $this->tableString .= '<tbody>';
-                for($i = 0; $i < $this->rows; $i++) {
+
+                if($this->isRowData) {
                     $this->tableString .= '<tr>';
-                    for($j = 0; $j < $this->columns; $j++) {
-                        $key = $order[$j];
-                        if (in_array($key, $this->extraHeaders)) {
-                            $this->tableString .= '<th';
-                        }
-                        else {
-                            $this->tableString .= '<td';
-                        }
-                        $this->tableString .= ($this->addHeaderClasses ? ' class="' . $this->classPrefix . $key . '"' : '') . '>' . 
-                            $this->data[$key][$i] . '</td>';
+                    foreach($order as $key) {
+                        $el = in_array($key, $this->extraHeaders) ? 'th' : 'td';
+                            $this->tableString .= "<$el" . ($this->addHeaderClasses ? ' class="' . $this->classPrefix . $key . '"' : '') . '>' . 
+                                $this->data[$key] . "</$el>";
                     }
                     $this->tableString .= '</tr>';
+                }
+                else {
+                    for($i = 0; $i < $this->rows; $i++) {
+                        $this->tableString .= '<tr>';
+                        for($j = 0; $j < $this->columns; $j++) {
+                            $key = $order[$j];
+                            $el = in_array($key, $this->extraHeaders) ? 'th' : 'td';
+                            $this->tableString .= "<$el" . ($this->addHeaderClasses ? ' class="' . $this->classPrefix . $key . '"' : '') . '>' . 
+                                $this->data[$key][$i] . "</$el>";
+                        }
+                        $this->tableString .= '</tr>';
+                    }
                 }
                 $this->tableString .= '</tbody>';
             }
             else {
-
                 $this->tableString .= '<tbody>';
-                for($i = 0; $i < $this->rows; $i++) {
-                    $this->tableString .= '<tr>';
-                    if ($this->showHeaders & self::FRONT) {
-                        $this->tableString .= '<th class="front' . 
-                            ($this->addHeaderClasses ? ' ' . $this->classPrefix . $order[$i] . '"' : '') .
-                            '">' . $order[$i] . '</th>';
+
+                if ($this->isRowData) {
+                    foreach($order as $key) {
+                        $this->tableString .= '<tr>';
+                        if ($this->showHeaders & self::FRONT) {
+                            $this->tableString .= '<th class="front' . 
+                                ($this->addHeaderClasses ? ' ' . $this->classPrefix . $key . '"' : '') .
+                                '">' . $key . '</th>';
+                        }
+
+                        $el = in_array($key, $this->extraHeaders) ? 'th' : 'td';
+                            $this->tableString .= "<$el" . ($this->addHeaderClasses ? ' class="' . $this->classPrefix . $key . '"' : '') . '>' . 
+                                $this->data[$key] . "</$el>";
+
+                        if ($this->showHeaders & self::BACK) {
+                            $this->tableString .= '<th class="back' . 
+                                ($this->addHeaderClasses ? ' ' . $this->classPrefix . $key . '"' : '') .
+                                '">' . $key . '</th>';
+                        }
+                        $this->tableString .= '</tr>';
                     }
-                    $key = $order[$i];
-                    $rowData = $this->data[$key];
-                    $el = in_array($key, $this->extraHeaders) ? '<th' : '<td';
-                    foreach($rowData as $d) {
-                        $this->tableString .= $el . 
-                            ($this->addHeaderClasses ? ' class="' . $this->classPrefix . $key . '"' : '') . '>' . 
-                            $d . '</td>';
-                    }
-                    if ($this->showHeaders & self::BACK) {
-                        $this->tableString .= '<th class="back' . 
-                            ($this->addHeaderClasses ? ' ' . $this->classPrefix . $order[$i] . '"' : '') .
-                            '">' . $order[$i] . '</th>';
-                    }
-                    $this->tableString .= '</tr>';
+                    
                 }
+                else {
+                    for($i = 0; $i < $this->rows; $i++) {
+                        $this->tableString .= '<tr>';
+                        if ($this->showHeaders & self::FRONT) {
+                            $this->tableString .= '<th class="front' . 
+                                ($this->addHeaderClasses ? ' ' . $this->classPrefix . $order[$i] . '"' : '') .
+                                '">' . $order[$i] . '</th>';
+                        }
+                        $key = $order[$i];
+                        $rowData = $this->data[$key];
+                        $el = in_array($key, $this->extraHeaders) ? 'th' : 'td';
+                        foreach($rowData as $d) {
+                            $this->tableString .= "<$el" . 
+                                ($this->addHeaderClasses ? ' class="' . $this->classPrefix . $key . '"' : '') . '>' . 
+                                $d . "</$el>";
+                        }
+                        if ($this->showHeaders & self::BACK) {
+                            $this->tableString .= '<th class="back' . 
+                                ($this->addHeaderClasses ? ' ' . $this->classPrefix . $order[$i] . '"' : '') .
+                                '">' . $order[$i] . '</th>';
+                        }
+                        $this->tableString .= '</tr>';
+                    }
+                }
+                  
                 $this->tableString .= '</tbody>';
             }
 

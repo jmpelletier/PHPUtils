@@ -239,6 +239,20 @@ for($i = 0; $i < $columns; $i++) {
 
     echo '<hr>';
 
+    /**
+     * Here is an example of a single row matrix with headers
+     * generated from the associative array keys.
+     */
+    $rowView = new TableView(array('foo'=>1, 'bar'=>2, 'hoge'=>3));
+    $rowView->orientation = TableView::HORIZONTAL;
+    $rowView->showHeaders = TableView::FRONT;
+    echo $rowView;
+
+    echo '<hr>';
+
+    $rowView->orientation = TableView::VERTICAL;
+    echo $rowView;
+
     
 
 ?>
