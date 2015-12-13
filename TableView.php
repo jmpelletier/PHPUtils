@@ -141,7 +141,7 @@ class TableView {
      * @param array $data The data to represent as an HTML table.
      */
     function __construct(array $data) {
-        $this->data = $data;
+        $this->data =& $data;
 
         // Make sure data is valid, if $data is null, assume an empty array
         if ($this->data === null || sizeof($this->data) === 0) {
